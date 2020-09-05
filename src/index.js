@@ -1,6 +1,13 @@
 const data = require('../data');
 const port = process.env.PORT  || 4000;
 /**
+ * What is rest?
+ * REST - REpresentation State Transfer.
+ * A fancy way of saying that a server responds to
+ * Create (POST), Read (GET), Update (PUT), Delete (DELETE) request using HTTP protocol.
+ * The idea behind REST is to treat all server URLs as access point
+ * for the various resources on the server.
+ *
  * Express.js is a web application framework for Node.js.
  * It provides various features that make web application development
  * fast and easy which otherwise takes more time using only Node.js.
@@ -22,7 +29,21 @@ http.createServer((req, res) => {
     // add routes
     const routes=req.url;
     console.log('url: '+routes);
-    if(routes.startsWith('/api/v1/doctors') === true) {
+    const id = parseInt(routes.substring(routes.lastIndexOf('/')+1,routes.length));
+
+    if(!isNaN(id)) {
+        //const id = parseInt(routes.substring(routes.lastIndexOf('/')+1,routes.length));
+        console.log(`id: ${id}`);
+        res.writeHead(200, {'Content-Type': 'application/json'});
+        //res.write('Hello World!'); //write a response to the client
+        if(id < data.doctors.length)  {
+            console.log(data.doctors[id-1]);
+            res.write(JSON.stringify(data.doctors[id-1]));
+        } else {
+            res.write(`Id ${id} not found`);
+        }
+        res.end();
+    } else if(routes.startsWith('/api/v1/doctors') === true) {
         const qry = url.parse(req.url, true).query;
         console.log('qry: ', qry);
         console.log('qry.year: ', qry.year);
@@ -30,13 +51,13 @@ http.createServer((req, res) => {
         //console.log(JSON.stringify(data.doctors));
         // send json
         res.writeHead(200, {'Content-Type': 'application/json'});
+        //res.write('Hello World!'); //write a response to the client
         if(!isNaN(qry.id))  {
             console.log(data.doctors[qry.id-1]);
             res.write(JSON.stringify(data.doctors[qry.id-1]));
         } else {
             res.write(JSON.stringify(data.doctors));
         }
-
         res.end();
     } else {
         res.write('<h1>'+routes+'<br /></h1>');     // read and respond url branch
