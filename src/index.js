@@ -38,8 +38,8 @@ http.createServer((req, res) => {
             console.log(`id: ${id}`);
             res.writeHead(200, {'Content-Type': 'application/json'});
             //res.write('Hello World!'); //write a response to the client
-            if(id < data.doctors.length)  {
-                console.log(data.doctors[id-1]);
+            console.log('length ',data.doctors.length);
+            if(id <= data.doctors.length)  {
                 res.write(JSON.stringify(data.doctors[id-1]));
             } else {
                 res.write(`Id ${id} not found`);
@@ -48,8 +48,8 @@ http.createServer((req, res) => {
         } else if(routes.startsWith('/api/v1/doctors') === true) {
             const qry = url.parse(req.url, true).query;
             console.log('qry: ', qry);
-            console.log('qry.year: ', qry.year);
-            console.log('qry.id: ', qry.id);
+            //console.log('qry.year: ', qry.year);
+            //console.log('qry.id: ', qry.id);
             //console.log(JSON.stringify(data.doctors));
             // send json
             res.writeHead(200, {'Content-Type': 'application/json'});
@@ -74,13 +74,17 @@ http.createServer((req, res) => {
         let body = [];
         req.on('data', (chunk) => {
             body.push(chunk);
-            console.log('body: ',body);
+            //console.log('body: ',body);
         }).on('end', () => {
-            let bodyJson = JSON.stringify(body);
-            console.log('JSON: ', bodyJson.data);
-            body = Buffer.concat(body).toString();
-            console.log('body string: ',body);
+        body = Buffer.concat(body).toString();
         // at this point, `body` has the entire request body stored in it as a string
+        const bodyJson = JSON.parse(body);
+        console.log('body string: ',body);
+        console.log('body name: ',bodyJson.name);
+        const nextId = data.doctors.length+1;
+        const doct = {id: nextId, name: bodyJson.name}
+        data.doctors.push(doct);
+        res.end();
         });
 
         /*console.log('name: ',body);
