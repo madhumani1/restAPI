@@ -24,46 +24,77 @@ var url = require('url');
 // create a server object:
 // Use the createServer() method to create an HTTP server:
 http.createServer((req, res) => {
-    res.writeHead(200, {'Content-Type': 'text/html'}); // hide this, see the font difference in browser
-    //res.write('Hello World!'); //write a response to the client
-    // add routes
-    const routes=req.url;
-    console.log('url: '+routes);
-    const id = parseInt(routes.substring(routes.lastIndexOf('/')+1,routes.length));
+    // Handle GET
+    if(req.method === 'GET') {
+        res.writeHead(200, {'Content-Type': 'text/html'}); // hide this, see the font difference in browser
+        //res.write('Hello World!'); //write a response to the client
+        // add routes
+        const routes=req.url;
+        console.log('url: '+routes);
+        const id = parseInt(routes.substring(routes.lastIndexOf('/')+1,routes.length));
 
-    if(!isNaN(id)) {
-        //const id = parseInt(routes.substring(routes.lastIndexOf('/')+1,routes.length));
-        console.log(`id: ${id}`);
-        res.writeHead(200, {'Content-Type': 'application/json'});
-        //res.write('Hello World!'); //write a response to the client
-        if(id < data.doctors.length)  {
-            console.log(data.doctors[id-1]);
-            res.write(JSON.stringify(data.doctors[id-1]));
+        if(!isNaN(id)) {
+            //const id = parseInt(routes.substring(routes.lastIndexOf('/')+1,routes.length));
+            console.log(`id: ${id}`);
+            res.writeHead(200, {'Content-Type': 'application/json'});
+            //res.write('Hello World!'); //write a response to the client
+            if(id < data.doctors.length)  {
+                console.log(data.doctors[id-1]);
+                res.write(JSON.stringify(data.doctors[id-1]));
+            } else {
+                res.write(`Id ${id} not found`);
+            }
+            res.end();
+        } else if(routes.startsWith('/api/v1/doctors') === true) {
+            const qry = url.parse(req.url, true).query;
+            console.log('qry: ', qry);
+            console.log('qry.year: ', qry.year);
+            console.log('qry.id: ', qry.id);
+            //console.log(JSON.stringify(data.doctors));
+            // send json
+            res.writeHead(200, {'Content-Type': 'application/json'});
+            //res.write('Hello World!'); //write a response to the client
+            if(!isNaN(qry.id))  {
+                console.log(data.doctors[qry.id-1]);
+                res.write(JSON.stringify(data.doctors[qry.id-1]));
+            } else {
+                res.write(JSON.stringify(data.doctors));
+            }
+            res.end();
         } else {
-            res.write(`Id ${id} not found`);
+            res.write('<h1>'+routes+'<br /></h1>');     // read and respond url branch
+            const q = url.parse(req.url, true).query;
+            const txt = q.year + " " + q.month;
+            res.end(txt);
         }
-        res.end();
-    } else if(routes.startsWith('/api/v1/doctors') === true) {
-        const qry = url.parse(req.url, true).query;
-        console.log('qry: ', qry);
-        console.log('qry.year: ', qry.year);
-        console.log('qry.id: ', qry.id);
-        //console.log(JSON.stringify(data.doctors));
-        // send json
+    }   else if(req.method === 'POST') {  // POST
         res.writeHead(200, {'Content-Type': 'application/json'});
-        //res.write('Hello World!'); //write a response to the client
-        if(!isNaN(qry.id))  {
-            console.log(data.doctors[qry.id-1]);
-            res.write(JSON.stringify(data.doctors[qry.id-1]));
-        } else {
-            res.write(JSON.stringify(data.doctors));
+        const routes=req.url;
+        //var body = res.data.body;
+        let body = [];
+        req.on('data', (chunk) => {
+            body.push(chunk);
+            console.log('body: ',body);
+        }).on('end', () => {
+            let bodyJson = JSON.stringify(body);
+            console.log('JSON: ', bodyJson.data);
+            body = Buffer.concat(body).toString();
+            console.log('body string: ',body);
+        // at this point, `body` has the entire request body stored in it as a string
+        });
+
+        /*console.log('name: ',body);
+        console.log('url: '+routes);
+
+        if(!body) {
+            res.write('Doctor needs a new parameter');
         }
-        res.end();
-    } else {
-        res.write('<h1>'+routes+'<br /></h1>');     // read and respond url branch
-        const q = url.parse(req.url, true).query;
-        const txt = q.year + " " + q.month;
-        res.end(txt);
+        const nextId = data.doctors.length + 1;
+        const doctor = { id: nextId, body: body };
+
+        data.doctors.push(doctor);
+        res.write(JSON.stringify(data.doctors));
+        res.end();*/
     }
 
 }).listen(port, () => {
